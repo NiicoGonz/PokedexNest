@@ -2,6 +2,10 @@
 /dist
 /node_modules
 /mongo
+!.WiredTiger
+!.WiredTiger.lock
+!.WiredTiger.wt
+!.WiredTiger.turtle
 
 # Logs
 logs
