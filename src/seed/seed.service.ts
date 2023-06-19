@@ -1,26 +1,81 @@
-
 import { Injectable } from '@nestjs/common';
-import axios, {AxiosInstance} from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { PokemonResponse } from './interfaces/poke-response.interface';
-
+import { InjectModel } from '@nestjs/mongoose';
+import { Pokemon } from 'src/pokemon/entities/pokemon.entity';
+import { Model } from 'mongoose';
+import { Trainers } from 'src/pokemon/entities/trainers.entity';
 
 @Injectable()
 export class SeedService {
+  constructor(
+    @InjectModel(Pokemon.name)
+    private readonly pokemmonModel: Model<Pokemon>,
+    @InjectModel(Trainers.name)
+    private readonly trainerModule: Model<Trainers>,
+  ) {}
+
+  private readonly axios: AxiosInstance = axios;
+
+  async construirPokemon(pokemonsUrl: any[]) {
+    const pokemons = await Promise.all(
+      pokemonsUrl.map(async (url) => {
+        const { data } = await this.axios.get<any>(url);
+        const { name, order } = data;
+        const types = data.types.map((type) => {
+          return type.type.name;
+        });
+        const typesString = types.join('/');
   
-  private readonly axios:AxiosInstance = axios;;
+        return { name, type: typesString, pokedex:order, region: 'Kanto', no:order };
+      }),
+    );
+  
+    await this.pokemmonModel.insertMany(pokemons);
 
- async  executeSeed():Promise<any[]> {
-   const {data } =await  this.axios.get<PokemonResponse>('https://pokeapi.co/api/v2/pokemon?limit=2')
-    
-   data.results.forEach(async ({name,url})=>{
-    const segments :string[] = url.split('/');
-    const no:number = +segments[segments.length - 2];
-    console.log({name,no});
-    });
-   return data.results;
+    return pokemons;
   }
+  
 
- 
 
-
+  async executeSeed(): Promise<any[]> {
+    await this.pokemmonModel.deleteMany({});
+    await this.trainerModule.deleteMany({});
+    const { data } = await this.axios.get<PokemonResponse>(
+      'https://pokeapi.co/api/v2/pokemon?limit=898&offset=0',
+    );
+  
+    const pokemonsUrl = await Promise.all(
+      data.results.map(async ({ name, url }) => {
+        return url;
+      }),
+    );
+  
+    const createPokemon = await this.construirPokemon(pokemonsUrl);
+    const trainers = [
+      { name: 'Ash', region: 'Kanto', status: 'active' },
+      { name: 'Misty', region: 'Kanto', status: 'active' },
+      { name: 'Brock', region: 'Kanto', status: 'active' },
+      { name: 'Gary', region: 'Kanto', status: 'active' },
+      { name: 'Jessie', region: 'Kanto', status: 'active' },
+      { name: 'James', region: 'Kanto', status: 'active' },
+      { name: 'Professor Oak', region: 'Kanto', status: 'active' },
+      { name: 'Delia Ketchum', region: 'Kanto', status: 'active' },
+      { name: 'Tracey Sketchit', region: 'Kanto', status: 'active' },
+      { name: 'May', region: 'Hoenn', status: 'active' },
+      { name: 'Max', region: 'Hoenn', status: 'active' },
+      { name: 'Dawn', region: 'Sinnoh', status: 'active' },
+      { name: 'Iris', region: 'Unova', status: 'active' },
+      { name: 'Cilan', region: 'Unova', status: 'active' },
+      { name: 'Serena', region: 'Kalos', status: 'active' },
+      { name: 'Clemont', region: 'Kalos', status: 'active' },
+      { name: 'Bonnie', region: 'Kalos', status: 'active' },
+      { name: 'Lana', region: 'Alola', status: 'active' },
+      { name: 'Mallow', region: 'Alola', status: 'active' },
+      { name: 'Lillie', region: 'Alola', status: 'active' },
+    ];
+    await this.trainerModule.insertMany(trainers);
+    return createPokemon;
+  }
+  
 }
