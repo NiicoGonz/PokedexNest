@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import axios, { AxiosInstance } from 'axios';
 import { PokemonResponse } from './interfaces/poke-response.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Pokemon } from 'src/pokemon/entities/pokemon.entity';
 import { Model } from 'mongoose';
 import { Trainers } from 'src/pokemon/entities/trainers.entity';
+import { AxiosAdapter } from 'src/common/adapters/axios.adapter';
 
 @Injectable()
 export class SeedService {
@@ -13,14 +13,16 @@ export class SeedService {
     private readonly pokemmonModel: Model<Pokemon>,
     @InjectModel(Trainers.name)
     private readonly trainerModule: Model<Trainers>,
+
+    private readonly http: AxiosAdapter,
+
   ) {}
 
-  private readonly axios: AxiosInstance = axios;
 
   async construirPokemon(pokemonsUrl: any[]) {
     const pokemons = await Promise.all(
       pokemonsUrl.map(async (url) => {
-        const { data } = await this.axios.get<any>(url);
+        const data  = await this.http.get<any>(url);
         const { name, order } = data;
         const types = data.types.map((type) => {
           return type.type.name;
@@ -41,7 +43,7 @@ export class SeedService {
   async executeSeed(): Promise<any[]> {
     await this.pokemmonModel.deleteMany({});
     await this.trainerModule.deleteMany({});
-    const { data } = await this.axios.get<PokemonResponse>(
+    const data  = await this.http.get<PokemonResponse>(
       'https://pokeapi.co/api/v2/pokemon?limit=898&offset=0',
     );
   

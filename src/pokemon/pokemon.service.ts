@@ -38,7 +38,8 @@ export class PokemonService {
   }
 
   findAll() {
-    return this.pokemonModel.find().exec();
+    return this.pokemonModel.find()
+    .sort({no:1})
   }
 
   async findOne(id: string) {
