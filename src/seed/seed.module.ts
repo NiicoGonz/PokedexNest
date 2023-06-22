@@ -7,7 +7,7 @@ import { CommonModule } from 'src/common/common.module';
 
 @Module({
   controllers: [SeedController],
-  providers: [SeedService, PokemonService],
+  providers: [SeedService],
   imports: [PokemonModule,
   CommonModule],
 })
