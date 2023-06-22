@@ -1,7 +1,6 @@
 # compiled output
 /dist
 /node_modules
-/mongo
 !.WiredTiger
 !.WiredTiger.lock
 !.WiredTiger.wt
@@ -38,3 +37,7 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Variables
+/mongo/
+.env
